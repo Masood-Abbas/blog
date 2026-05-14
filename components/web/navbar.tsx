@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
 import { ThemeToggle } from "./theme-toggle";
+import { useConvexAuth } from "convex/react";
+
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const navLinks = [
   {
@@ -30,10 +35,13 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full  bg-background/80 backdrop-blur-md">
-      <div className="w-full flex h-16 items-center justify-between ">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md">
+      <div className="w-full flex h-16 items-center justify-between">
         {/* Left Side */}
         <div className="flex items-center gap-10">
           {/* Logo */}
@@ -41,12 +49,10 @@ export function Navbar() {
             href="/"
             className="group flex items-center gap-3 transition-all duration-300"
           >
-            {/* Logo Icon */}
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
               <span className="text-xl font-black">N</span>
             </div>
 
-            {/* Logo Text */}
             <div className="flex flex-col leading-none">
               <h1 className="text-2xl font-black tracking-tight">
                 Next<span className="text-primary">Pro</span>
@@ -80,28 +86,49 @@ export function Navbar() {
 
         {/* Right Side */}
         <div className="hidden items-center gap-2 md:flex">
-          {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Auth Buttons */}
-          <Link
-            href="/auth/login"
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Login
-          </Link>
+          {isLoading ? null : isAuthenticated ? (
+            <Button
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      toast.success("Logged out successfully");
+                      router.push("/");
+                    },
+                    onError: (error) => {
+                      toast.error(error.error.message);
+                    },
+                  },
+                })
+              }
+            >
+              Logout
+            </Button>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className={buttonVariants({
+                  variant: "outline",
+                })}
+              >
+                Login
+              </Link>
 
-          <Link
-            href="/auth/signup"
-            className={buttonVariants()}
-          >
-            Sign Up
-          </Link>
+              <Link
+                href="/auth/signup"
+                className={buttonVariants()}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu */}
         <div className="flex items-center gap-2 md:hidden">
-          {/* Theme Toggle Mobile */}
           <ThemeToggle />
 
           <Sheet>
@@ -152,21 +179,45 @@ export function Navbar() {
 
                 {/* Mobile Buttons */}
                 <div className="mt-6 flex flex-col gap-3">
-                  <Link
-                    href="/auth/login"
-                    className={buttonVariants({
-                      variant: "outline",
-                    })}
-                  >
-                    Login
-                  </Link>
+                  {isLoading ? null : isAuthenticated ? (
+                    <Button
+                      onClick={() =>
+                        authClient.signOut({
+                          fetchOptions: {
+                            onSuccess: () => {
+                              toast.success(
+                                "Logged out successfully"
+                              );
+                              router.push("/");
+                            },
+                            onError: (error) => {
+                              toast.error(error.error.message);
+                            },
+                          },
+                        })
+                      }
+                    >
+                      Logout
+                    </Button>
+                  ) : (
+                    <>
+                      <Link
+                        href="/auth/login"
+                        className={buttonVariants({
+                          variant: "outline",
+                        })}
+                      >
+                        Login
+                      </Link>
 
-                  <Link
-                    href="/auth/signup"
-                    className={buttonVariants()}
-                  >
-                    Sign Up
-                  </Link>
+                      <Link
+                        href="/auth/signup"
+                        className={buttonVariants()}
+                      >
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

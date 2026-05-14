@@ -1,11 +1,11 @@
-import { convexBetterAuthNextJs } from "@convex-dev/better-auth/nextjs";
+import { convexBetterAuthNextJs, } from "@convex-dev/better-auth/nextjs";
 
 export const {
   handler,
   preloadAuthQuery,
   isAuthenticated,
-  getToken,
   fetchAuthQuery,
+  getToken,
   fetchAuthMutation,
   fetchAuthAction,
 } = convexBetterAuthNextJs({

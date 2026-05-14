@@ -1,33 +1,60 @@
 "use client";
 import { SignUpSchema } from "@/app/schema/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const Signup = () => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition()
   const form = useForm({
-    resolver: zodResolver(SignUpSchema), 
-    defaultValues:{
-      name:"",
-      email:"",
-      password:""
-    }
+    resolver: zodResolver(SignUpSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
   });
 
-  const handleSubmit =async (data:z.infer<typeof SignUpSchema>)=>{
-    await authClient.signUp.email({
-      name:data.name,
-      email:data.email,
-      password:data.password
-    })
-  }
-    return (
+  const handleSubmit = (data: z.infer<typeof SignUpSchema>) => {
+    startTransition(async () => {
+      await authClient.signUp.email({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Account created successfully");
+            router.push("/");
+          },
+          onError: (error) => {
+            toast.error(error.error.message);
+          },
+        },
+      });
+    });
+  };
+  return (
     <Card>
       <CardHeader>
         <CardTitle>Sign up</CardTitle>
@@ -90,8 +117,7 @@ const Signup = () => {
                 </Field>
               )}
             />
-            <Button type="submit">Signup</Button>
-            {/* <Button disabled={isPending}>
+            <Button disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
@@ -100,12 +126,12 @@ const Signup = () => {
               ) : (
                 <span>Signup</span>
               )}
-            </Button> */}
+            </Button>
           </FieldGroup>
         </form>
       </CardContent>
     </Card>
   );
-}
+};
 
-export default Signup
+export default Signup;
