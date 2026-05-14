@@ -5,7 +5,7 @@ export default defineSchema({
     posts: defineTable({
         title: v.string(),
         body: v.string(),
-        // image: v.optional(v.string()),
+        imageStorageId: v.optional(v.id('_storage')),
         authorId: v.string()
     })
 })

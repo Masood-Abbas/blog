@@ -40,7 +40,7 @@ export function Navbar() {
   const { isAuthenticated, isLoading } = useConvexAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md mb-4">
       <div className="w-full flex h-16 items-center justify-between">
         {/* Left Side */}
         <div className="flex items-center gap-10">
@@ -138,7 +138,7 @@ export function Navbar() {
               </button>
             </SheetTrigger>
 
-            <SheetContent side="right" className="w-[300px]">
+            <SheetContent side="right" className="w-75">
               <div className="mt-8 flex flex-col gap-3">
                 {/* Mobile Logo */}
                 <Link
