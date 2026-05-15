@@ -40,10 +40,30 @@ export const getPosts = query({
           ...post,
           imageUrl: resolvedImageUrl,
         };
-      })
+      }),
     );
   },
 });
+
+// get a single post by id
+// export const getPostById = query({
+//   args: { id: v.id("posts") },
+//   handler: async (ctx, args) => {
+//     const post = await ctx.db.get(args.id);
+//     if (!post) {
+//       return null;
+//     }
+//     const resolvedImageUrl =
+//       post.imageStorageId !== undefined
+//         ? await ctx.storage.getUrl(post.imageStorageId)
+//         : null;
+
+//     return {
+//       ...post,
+//       imageUrl: resolvedImageUrl,
+//     };
+//   },
+// });
 
 // generate the image upload url
 
@@ -55,5 +75,27 @@ export const generateImageUploadUrl = mutation({
       throw new Error("Unauthorized");
     }
     return await ctx.storage.generateUploadUrl();
+  },
+});
+
+// get single blog data by id
+
+export const getPostById = query({
+  args: {
+    postId: v.id("posts"),
+  },
+  handler: async (ctx, args) => {
+    const post = await ctx.db.get(args.postId);
+    if (!post) {
+      return null;
+    }
+    const resolvedImageUrl =
+      post?.imageStorageId !== undefined
+        ? await ctx.storage.getUrl(post.imageStorageId)
+        : null;
+    return {
+      ...post,
+      imageUrl: resolvedImageUrl,
+    };
   },
 });
