@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import Tiptap from "@/components/web/text-editor";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Loader2 } from "lucide-react";
@@ -124,8 +123,6 @@ export default function CreateRoute() {
                   </Field>
                 )}
               />
-
-              <Tiptap/>
 
               <Button disabled={isPending}>
                 {isPending ? (

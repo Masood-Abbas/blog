@@ -1,22 +1,56 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import CommentSection from "@/components/web/CommentSection";
+import PostPresence from "@/components/web/PostPresence";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { fetchQuery } from "convex/nextjs";
+import { getToken } from "@/lib/auth-server";
+import { fetchQuery, preloadQuery } from "convex/nextjs";
 import { ArrowLeft } from "lucide-react";
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 interface PostIdRouteProps {
   params: Promise<{
     postId: Id<"posts">;
   }>;
 }
-
-const PostIdRoute = async ({ params }: PostIdRouteProps) => {
+//  meta data
+export async function generateMetadata({
+  params,
+}: PostIdRouteProps): Promise<Metadata> {
   const { postId } = await params;
   const post = await fetchQuery(api.posts.getPostById, { postId: postId });
+  if (!post) {
+    return {
+      title: "post not found",
+    };
+  }
+  return {
+    title: post.title,
+    description: post.body.slice(0, 149) + "...",
+  };
+}
 
+// main function
+const PostIdRoute = async ({ params }: PostIdRouteProps) => {
+  const { postId } = await params;
+
+  const token = await getToken();
+  const [post, preloadedComments, userId] = await Promise.all([
+    await fetchQuery(api.posts.getPostById, { postId: postId }),
+    await preloadQuery(api.comments.getCommentsByPostId, { postId: postId }),
+    await fetchQuery(api.presence.getUserId, {}, { token }),
+  ]);
+
+  // if  user not found
+  if (!userId) {
+    return redirect("/auth/login");
+  }
+
+  // if post not found
   if (!post) {
     return {
       title: "Post not found",
@@ -33,7 +67,7 @@ const PostIdRoute = async ({ params }: PostIdRouteProps) => {
         Back to blog
       </Link>
 
-      <div className="relative w-full h-[400px] mb-8 rounded-xl overflow-hidden shadow-sm">
+      <div className="relative w-full h-100 mb-8 rounded-xl overflow-hidden shadow-sm">
         <Image
           src={
             post?.imageUrl ??
@@ -48,21 +82,23 @@ const PostIdRoute = async ({ params }: PostIdRouteProps) => {
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
           {post.title}
         </h1>
-         <p className="text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
             Posted on:{" "}
             {new Date(post._creationTime).toLocaleDateString("en-US")}
           </p>
-
-          <Separator className="my-8" />
-
-      <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap">
-        {post.body}
-      </p>
-
-      <Separator className="my-8" />
-
-
+          {userId && <PostPresence roomId={post._id} userId={userId} />}
         </div>
+
+        <Separator className="my-8" />
+
+        <p className="text-lg leading-relaxed text-foreground/90 whitespace-pre-wrap">
+          {post.body}
+        </p>
+
+        <Separator className="my-8" />
+        <CommentSection preloadedComments={preloadedComments} />
+      </div>
     </div>
   );
 };

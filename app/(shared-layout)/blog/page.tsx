@@ -1,21 +1,20 @@
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonLoadingUi } from "@/components/web/loadingCard";
 import { api } from "@/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
-// import { Metadata } from "next";
+import { Metadata } from "next";
 // import { cacheLife, cacheTag } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 
-// export const metadata: Metadata = {
-//   title: "Blog | Next.js 16 Tutorial",
-//   description: "Read our latest articles and insights.",
-//   category: "Web development",
-//   authors: [{ name: "Jan marshal" }],
-// };
+export const metadata:Metadata ={
+  title: "Blog | My Awesome Blog",
+  description: "Read our Latest Articles and Insights on Tech, Lifestyle and more.",
+  category:"web development, Tecnology",
+  authors: [{name: "Masood Abbas"}]
+}
 
 export default function BlogPage() {
   return (
