@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/web/navbar";
+import { Suspense } from "react";
 
 const SharedLayout = ({
   children,
@@ -7,7 +8,9 @@ const SharedLayout = ({
 }>) => {
   return (
     <>
-      <Navbar />
+      <Suspense fallback={<div className="h-16 bg-background/80" />}>
+        <Navbar />
+      </Suspense>
       {children}
     </>
   );

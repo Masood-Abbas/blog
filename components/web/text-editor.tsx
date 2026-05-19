@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Editor,
   EditorContent,
@@ -10,8 +12,17 @@ import {
 import StarterKit from "@tiptap/starter-kit";
 import UnderlineExtension from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
+import Link from "@tiptap/extension-link";
 
 import { Toggle } from "@/components/ui/toggle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import {
   Bold,
@@ -23,16 +34,50 @@ import {
   List,
   ListOrdered,
   Quote,
+  Link2,
+  Unlink,
 } from "lucide-react";
 
 const Tiptap = () => {
   const editor = useEditor({
-    extensions: [StarterKit, UnderlineExtension, Highlight],
+    extensions: [
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
+
+      UnderlineExtension,
+
+      Highlight,
+
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+      }),
+    ],
 
     content: `
       <h2>Hello World!</h2>
-      <p>Select text and test toolbar buttons.</p>
+
+      <p>
+        Select text and add formatting.
+      </p>
     `,
+
+    editorProps: {
+      attributes: {
+        class:
+          "prose dark:prose-invert prose-sm sm:prose-base max-w-none focus:outline-none",
+      },
+    },
 
     immediatelyRender: false,
   });
@@ -45,7 +90,29 @@ const Tiptap = () => {
 
       <EditorContent
         editor={editor}
-        className="border rounded-md min-h-62.5 p-4 mt-4 prose max-w-none"
+        className="
+          border
+          rounded-md
+          min-h-62.5
+          p-4
+          mt-4
+          prose
+          dark:prose-invert
+          max-w-none
+
+          [&_ul]:list-disc
+          [&_ul]:ml-6
+
+          [&_ol]:list-decimal
+          [&_ol]:ml-6
+
+          [&_blockquote]:border-l-4
+          [&_blockquote]:pl-4
+          [&_blockquote]:italic
+
+          [&_a]:text-blue-500
+          [&_a]:underline
+        "
       />
     </div>
   );
@@ -54,6 +121,8 @@ const Tiptap = () => {
 export default Tiptap;
 
 const Toolbar = ({ editor }: { editor: Editor }) => {
+  const [url, setUrl] = useState("");
+
   const editorState = useEditorState({
     editor,
 
@@ -67,12 +136,28 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
       isBulletList: ctx.editor.isActive("bulletList"),
       isOrderedList: ctx.editor.isActive("orderedList"),
       isBlockquote: ctx.editor.isActive("blockquote"),
+      isLink: ctx.editor.isActive("link"),
     }),
   });
 
+  const addLink = () => {
+    if (!url) return;
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({
+        href: url,
+      })
+      .run();
+
+    setUrl("");
+  };
+
   return (
     <div className="flex flex-wrap items-center gap-2 border rounded-md p-2">
-      {/* bold */}
+      {/* Bold */}
       <Toggle
         pressed={editorState.isBold}
         onPressedChange={() => {
@@ -82,7 +167,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Bold className="h-4 w-4" />
       </Toggle>
 
-      {/* italic */}
+      {/* Italic */}
       <Toggle
         pressed={editorState.isItalic}
         onPressedChange={() => {
@@ -92,7 +177,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Italic className="h-4 w-4" />
       </Toggle>
 
-      {/* underline */}
+      {/* Underline */}
       <Toggle
         pressed={editorState.isUnderline}
         onPressedChange={() => {
@@ -102,7 +187,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Underline className="h-4 w-4" />
       </Toggle>
 
-      {/* strike */}
+      {/* Strike */}
       <Toggle
         pressed={editorState.isStrike}
         onPressedChange={() => {
@@ -112,7 +197,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Strikethrough className="h-4 w-4" />
       </Toggle>
 
-      {/* code */}
+      {/* Code */}
       <Toggle
         pressed={editorState.isCode}
         onPressedChange={() => {
@@ -122,7 +207,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Code className="h-4 w-4" />
       </Toggle>
 
-      {/* highlight */}
+      {/* Highlight */}
       <Toggle
         pressed={editorState.isHighlight}
         onPressedChange={() => {
@@ -132,7 +217,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Highlighter className="h-4 w-4" />
       </Toggle>
 
-      {/* bullet list */}
+      {/* Bullet List */}
       <Toggle
         pressed={editorState.isBulletList}
         onPressedChange={() => {
@@ -142,7 +227,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <List className="h-4 w-4" />
       </Toggle>
 
-      {/* ordered list */}
+      {/* Ordered List */}
       <Toggle
         pressed={editorState.isOrderedList}
         onPressedChange={() => {
@@ -152,7 +237,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <ListOrdered className="h-4 w-4" />
       </Toggle>
 
-      {/* blockquote */}
+      {/* Blockquote */}
       <Toggle
         pressed={editorState.isBlockquote}
         onPressedChange={() => {
@@ -161,6 +246,46 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
       >
         <Quote className="h-4 w-4" />
       </Toggle>
+
+      {/* Link / Unlink */}
+      {editorState.isLink ? (
+        <Toggle
+          pressed
+          onPressedChange={() => {
+            editor.chain().focus().unsetLink().run();
+          }}
+        >
+          <Unlink className="h-4 w-4" />
+        </Toggle>
+      ) : (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Toggle pressed={false}>
+              <Link2 className="h-4 w-4" />
+            </Toggle>
+          </PopoverTrigger>
+
+          <PopoverContent className="w-80">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">Add Link</h4>
+
+              <Input
+                placeholder="https://example.com"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+
+              <Button
+                type="button"
+                className="w-full"
+                onClick={addLink}
+              >
+                Add Link
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 };

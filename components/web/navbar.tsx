@@ -6,17 +6,14 @@ import { Menu } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { ThemeToggle } from "./theme-toggle";
 import { useConvexAuth } from "convex/react";
 
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { SearchInput } from "./SearchInput";
 
 const navLinks = [
   {
@@ -86,6 +83,9 @@ export function Navbar() {
 
         {/* Right Side */}
         <div className="hidden items-center gap-2 md:flex">
+          <div className="hidden md:block mr-2">
+            <SearchInput />
+          </div>
           <ThemeToggle />
 
           {isLoading ? null : isAuthenticated ? (
@@ -117,10 +117,7 @@ export function Navbar() {
                 Login
               </Link>
 
-              <Link
-                href="/auth/signup"
-                className={buttonVariants()}
-              >
+              <Link href="/auth/signup" className={buttonVariants()}>
                 Sign Up
               </Link>
             </>
@@ -141,10 +138,7 @@ export function Navbar() {
             <SheetContent side="right" className="w-75">
               <div className="mt-8 flex flex-col gap-3">
                 {/* Mobile Logo */}
-                <Link
-                  href="/"
-                  className="mb-6 flex items-center gap-3"
-                >
+                <Link href="/" className="mb-6 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                     <span className="text-lg font-black">N</span>
                   </div>
@@ -185,9 +179,7 @@ export function Navbar() {
                         authClient.signOut({
                           fetchOptions: {
                             onSuccess: () => {
-                              toast.success(
-                                "Logged out successfully"
-                              );
+                              toast.success("Logged out successfully");
                               router.push("/");
                             },
                             onError: (error) => {
@@ -210,10 +202,7 @@ export function Navbar() {
                         Login
                       </Link>
 
-                      <Link
-                        href="/auth/signup"
-                        className={buttonVariants()}
-                      >
+                      <Link href="/auth/signup" className={buttonVariants()}>
                         Sign Up
                       </Link>
                     </>

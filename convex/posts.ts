@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authComponent } from "./betterAuth/auth";
+import { Doc } from "./_generated/dataModel";
 
 // create the blog post data
 export const createPost = mutation({
@@ -97,5 +98,52 @@ export const getPostById = query({
       ...post,
       imageUrl: resolvedImageUrl,
     };
+  },
+});
+
+interface SearchResultsTypes {
+  _id: string;
+  title: string;
+  body: string;
+}
+
+export const searchPosts = query({
+  args: {
+    term: v.string(),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 10;
+    const results: Array<SearchResultsTypes> = [];
+    const seen = new Set();
+
+    const pushData = async (docs: Array<Doc<"posts">>) => {
+      for (const doc of docs) {
+        if (seen.has(doc._id)) continue;
+        seen.add(doc._id);
+        results.push({
+          _id: doc._id,
+          title: doc.title,
+          body: doc.body,
+        });
+        if (results.length >= limit) break;
+      }
+    };
+
+    const titleMatches = await ctx.db
+      .query("posts")
+      .withSearchIndex("search_title", (q) => q.search("title", args.term))
+      .take(limit);
+
+    await pushData(titleMatches);
+
+    if (results.length < limit) {
+      const bodyMatches = await ctx.db
+        .query("posts")
+        .withSearchIndex("search_body", (q) => q.search("body", args.term))
+        .take(limit);
+        await pushData(bodyMatches)
+    }
+    return results;
   },
 });
